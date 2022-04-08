@@ -34,8 +34,8 @@ tests%: export DB_USER="user"
 help:
 	@cat $(MAKEFILE_LIST) | docker run --rm -i xanders/make-help
 
-run-tests:			## Runs all tests excluding those requiring access to remote servers
+run-tests: # Runs all tests excluding those requiring access to remote servers
 	pytest -m 'not integration' --cov=app --cov-report html ${test_switches} ${test}
 
-run-tests-short:		## Runs all tests excluding those requiring access to remote servers, but breaks after first error
+run-tests-short: # Runs all tests excluding those requiring access to remote servers, but breaks after first error
 	make run-tests test_switches='-sxv'
