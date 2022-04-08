@@ -1,0 +1,41 @@
+# this bit exposes variables from docker_overrides to Makefile
+include shared.env
+export
+
+# NOTE1: SHARED_ENV is a way to share env variables between Docker,
+# 	docker-compose and Makefile, this way we have only one source of truth
+# NOTE2: in addition because SHARED_ENV variables are exported in master
+# 	process, before executing docker-compose, they are not only available in a
+# 	container but as well in docker-compose, allowing variable substitution
+# 	there
+# NOTE3: there is one drawback, Makefile prints all the variables as it runs,
+# 	making it akward stdout noise
+# NOTE4: overrides become handy if for example two different docker stacks run
+# 	mysql/rabbitmq instances and we need to set different ports for them
+
+# this bit loads docker_overrides to SHARED_ENV variable that can be used
+# later in commands
+SHARED_ENV = grep --regexp ^[A-Z] shared.env | cut -d= -f1
+
+VERSION = `cat pyproject.toml | grep "^version = \".*\"" | cut -d '"' -f2`
+
+SOURCE_BRANCH = $(shell git rev-parse --abbrev-ref HEAD)
+COMMIT = $(shell git rev-parse --short HEAD)
+
+test ?=
+test_switch ?= -s
+db_dump ?= dump.sql
+up = head
+down = -1
+
+tests%: export DB_PORT=5432
+tests%: export DB_USER="user"
+
+help:
+	@cat $(MAKEFILE_LIST) | docker run --rm -i xanders/make-help
+
+run-tests:			## Runs all tests excluding those requiring access to remote servers
+	pytest -m 'not integration' --cov=app --cov-report html ${test_switches} ${test}
+
+run-tests-short:		## Runs all tests excluding those requiring access to remote servers, but breaks after first error
+	make run-tests test_switches='-sxv'
