@@ -34,6 +34,11 @@ down = -1
 tests%: export DB_PORT=5432
 tests%: export DB_USER="user"
 
+# Show this help message
+# Multiple lines are supported too
+# When it's first, both commands works:
+# `make`
+# `make help`
 help:
 	@cat $(MAKEFILE_LIST) | docker run --rm -i xanders/make-help
 
@@ -52,3 +57,22 @@ run-tests:
 # Runs all tests excluding those requiring access to remote servers, but breaks after first error
 run-tests-short:
 	make run-tests test_switches='-sxv'
+
+##
+## Dockers
+##
+
+# Build Docker image
+build:
+	docker build -t xanders/make-help .
+
+# Run `build` and `help` successively
+test: build help
+
+##
+## Section for authorized contributors
+##
+
+# Push image to `https://hub.docker.com`
+push:
+	docker push xanders/make-help
